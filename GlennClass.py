@@ -4,11 +4,16 @@ CSIS 151 - Assignment 5: Class Creation
 Name: Glenn Jennings    10281334
 Date: August 10, 2025
 
-Commit Message:  search_by_title() public method completed
+Commit Message: borrow_book() public method completed
 
-search_by_title() permits a customer with an incomplete knowledge
-of a book title to get a list of candidate (correct, full) title strings.
-an empty list might be returned.
+borrow_book() can pretty much call all the other things 
+but it needs to return things:
+(a) if no such book, invalid string etc, return -1
+      all gettable attributes will return None
+(b) if book exists but none available for checkout, return 0
+      all gettable attributes will return valid data
+(c) if checkout is successful, return 1 
+      all gettable attributes will return valid data
 
 """
 
@@ -80,7 +85,7 @@ class GlennClass:
         return stage_four
 
     def search_by_title( self, guess ):
-        print(f"search_by_title '{guess}'")
+        # print(f"search_by_title '{guess}'")
         result = []
         # get a normalized string, and it might be bad right off-the-bat:
         trial = self._normalize_the_title_(guess)
@@ -88,21 +93,101 @@ class GlennClass:
             return result                      # return an empty list
         # now we iterate over all the *keys* in our dictionary
         for book_key in self._lib_inventory_:
-            print(f"  iterating on key '{book_key}'")
+            # print(f"  iterating on key '{book_key}'")
             it_works = False
             if trial in book_key:
-                print(f"    '{trial}' IS a subset of '{book_key}'")
+                # print(f"    '{trial}' IS a subset of '{book_key}'")
                 it_works = True
             if not it_works:
                 # let's squeeze any blanks out of both of the strings:
                 squeezed = trial.replace(' ','')
                 booksqueezed = book_key.replace(' ','')
                 if squeezed in booksqueezed:
-                    print(f"    '{squeezed}' IS a subset of '{book_key}'")
+                    # print(f"    '{squeezed}' IS a subset of '{book_key}'")
                     it_works = True
             if it_works:    # we can add this to our output list.
                 book_data = self._lib_inventory_.get(book_key)
                 result.append(book_data[0])  # entry 0 is the correct title
         return result
 
-            
+    def _set_title_( self, to_become ):
+        self._title_ = to_become
+        
+    def _set_author_( self, to_become ):
+        self._author_ = to_become
+
+    def _set_publication_year_( self, to_become ):
+        self._publication_year_ = to_become
+
+    def _set_copies_available_( self, to_become ):
+        self._copies_available_ = to_become
+
+    def _set_copies_checked_out_( self, to_become ):
+        self._copies_checked_out_ = to_become
+
+
+    def get_title( self ):
+        if not self._valid_entry_:
+            return None
+        return self._title_
+        
+    def get_author( self ):
+        if not self._valid_entry_:
+            return None
+        return self._author_
+
+    def get_publication_year( self ):
+        if not self._valid_entry_:
+            return None
+        return self._publication_year_
+
+    def get_copies_available( self ):
+        if not self._valid_entry_:
+            return None
+        return self._copies_available_
+
+    def get_copies_checked_out( self ):
+        if not self._valid_entry_:
+            return None
+        return self._copies_checked_out_
+
+
+    def borrow_book( self, guess ):
+        self._valid_entry_ = False
+        # get a normalized string, and it might be bad right off-the-bat:
+        trial = self._normalize_the_title_(guess)
+        if trial == None:
+            return -1                           # return a no-such-book
+        # we do an abbreviated variant of "search_by_title":
+        result = []
+        # now we iterate over all the *keys* in our dictionary
+        for book_key in self._lib_inventory_:
+            # print(f"  iterating on key '{book_key}'")
+            it_works = False
+            ### I think this subset is BAD  it might cause a book to be masked
+            if trial in book_key:
+                result.append(book_key)  # we want the normalized key here
+        # there must be exactly one result, a unique book.
+        if len(result) != 1:
+            return -1                           # return a no-such-book
+        dict_key = result[0]         # needed to access the data.
+        book_data = self._lib_inventory_.get(dict_key)  # now we have data.
+        self._valid_entry_ = True    # no get/set for this foudational.
+        print('BOOK DATA NOW:',book_data)
+        self._set_title_(              book_data[0] )
+        self._set_author_(             book_data[1] )
+        self._set_publication_year_(   book_data[2] )
+        self._set_copies_available_(   book_data[3] )
+        self._set_copies_checked_out_( book_data[4] )
+        # so what do we tell the customer ?
+        if self._copies_available_ <= 0:
+            return 0                 # return a yes-book but none available
+        # check it out,
+        # update the gettable attributes,
+        self._set_copies_available_(   self._copies_available_   - 1 )
+        self._set_copies_checked_out_( self._copies_checked_out_ + 1 )
+        # and update the dictionary.  do NOT use "get" here !!!
+        self._lib_inventory_[dict_key] = \
+            (self._title_, self._author_, self._publication_year_, \
+             self._copies_available_, self._copies_checked_out_)
+        return 1                     # successful checkout.
