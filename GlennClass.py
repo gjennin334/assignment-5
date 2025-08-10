@@ -4,10 +4,11 @@ CSIS 151 - Assignment 5: Class Creation
 Name: Glenn Jennings    10281334
 Date: August 10, 2025
 
-Commit Message:   __init__dictionary and get/set methods
+Commit Message:  search_by_title() public method completed
 
-This commit tests the creation of the initial library dictionary at __init__
-and its needed internal get/set methods
+search_by_title() permits a customer with an incomplete knowledge
+of a book title to get a list of candidate (correct, full) title strings.
+an empty list might be returned.
 
 """
 
@@ -45,8 +46,8 @@ class GlennClass:
         nomn = self._normalize_the_title_("Fahrenheit 451")
         datatuple = ("Fahrenheit 451", "Ray Bradbury", 1953, 0, 1 )
         self._lib_inventory_[nomn] = datatuple
-        print('initial dictionary is built:')
-        print( self._lib_inventory_ )
+        # print('initial dictionary is built:')
+        # print( self._lib_inventory_ )
 
 # internal method to massage an arbitrary string into a string
 # suitable as a dictionary key:
@@ -78,6 +79,30 @@ class GlennClass:
             return None
         return stage_four
 
-
+    def search_by_title( self, guess ):
+        print(f"search_by_title '{guess}'")
+        result = []
+        # get a normalized string, and it might be bad right off-the-bat:
+        trial = self._normalize_the_title_(guess)
+        if trial == None:
+            return result                      # return an empty list
+        # now we iterate over all the *keys* in our dictionary
+        for book_key in self._lib_inventory_:
+            print(f"  iterating on key '{book_key}'")
+            it_works = False
+            if trial in book_key:
+                print(f"    '{trial}' IS a subset of '{book_key}'")
+                it_works = True
+            if not it_works:
+                # let's squeeze any blanks out of both of the strings:
+                squeezed = trial.replace(' ','')
+                booksqueezed = book_key.replace(' ','')
+                if squeezed in booksqueezed:
+                    print(f"    '{squeezed}' IS a subset of '{book_key}'")
+                    it_works = True
+            if it_works:    # we can add this to our output list.
+                book_data = self._lib_inventory_.get(book_key)
+                result.append(book_data[0])  # entry 0 is the correct title
+        return result
 
             
